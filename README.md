@@ -1,136 +1,124 @@
-<div align="center">
+# Tuesday.com
 
-# 🗓️ Tuesday.com
+A collaborative task-management application built during **HackED 2025**. The checked-in implementation is a server-rendered Node.js application using Express, EJS, MongoDB/Mongoose, Passport authentication, and Together AI for one focused automation feature: decomposing an existing task into generated subtasks.
 
-*An innovative project management platform built during HackED 2025*
+[Devpost](https://devpost.com/software/tuesday-com) · [Hackathon team repository](https://github.com/MisbahAN/tuesday.com)
 
-[![HackED 2025](https://img.shields.io/badge/HackED-2025-orange.svg)](https://github.com/MisbahAN/tuesday.com)
-[![Visit our Devpost](https://img.shields.io/badge/Devpost-blue.svg)](https://devpost.com/software/tuesday-com)
-[![Powered by OpenAI](https://img.shields.io/badge/Powered%20by-OpenAI-412991.svg)](https://openai.com)
-</div>
+## Implemented features
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Core Features](#-Core-Features)
-3. [Repository Structure](#-Repository-Structure)
-   - [Frontend Structure](#frontend-structure)
-   - [Backend Structure](#backend-structure)
-4. [Installation & Setup](#Installation-&-Setup)
-   - [Prerequisites](#prerequisites)
-   - [Getting Started](#getting-started)
-5. [Future Enhancements](#-Future-Enhancements)
-6. [Contributing](#-Contributing)
+### Accounts and lists
 
----
-## Overview
+- local username/password registration with Passport Local
+- session-based authentication
+- creation of task lists
+- assignment of users to shared lists
+- authenticated list selection
 
-**Tuesday.com** is a comprehensive project management platform that combines advanced task management capabilities with AI-driven automation. Built during **HackED 2025**, it offers a modern approach to team collaboration and project organization.
+### Tasks
 
+- create a task with description and due date
+- view assigned and unassigned tasks
+- claim/assign tasks
+- mark assigned tasks complete
+- preserve task/list/user relationships through Mongoose models
 
-## 🚀 Core Features
+### AI-assisted subtask decomposition
 
-### 🤖 AI-Driven Task Automation
-- Intelligent task generation and management
-- Smart task prioritization
-- Predictive task scheduling
+For an existing task, the backend can send the task name, description, and due date to **Together AI**. The returned subtask text is parsed into new task records. If the original task had an assignment, that assignment is copied to the generated subtasks before the original task and assignment are removed.
 
-### 📊 Task Management System
-- Intuitive Kanban board interface
-- Customizable task workflows
-- Real-time collaboration tools
+This is the AI feature implemented in the current source. The repository does **not** currently implement predictive scheduling or a general autonomous project-management agent.
 
-### 📱 User Experience
-- Interactive dashboard
-- Real-time updates
-- Responsive design
+## Architecture
 
-## 📁 Repository Structure
+~~~text
+Browser
+  │
+  ▼
+Express + EJS
+  ├── Passport Local sessions
+  ├── task/list routes
+  └── Together AI request for subtask generation
+  │
+  ▼
+MongoDB / Mongoose
+  ├── Users
+  ├── Lists
+  ├── Tasks
+  ├── Assignments
+  └── ListAssignments
+~~~
 
-### Frontend Structure
-```
-backend/
-├── views/
-    ├── register.ejs     # sign up page
-    ├── login.ejs        # Login page
-    ├── main.ejs         # List selection
-    └── tasks.ejs        # Task list
-```
+The main runnable application is under <code>backend/</code>. A separate root React/Create React App package is also present in the repository, but the task-management flow audited here is the Express/EJS application.
 
-### Backend Structure
-```
-backend/
-├── models/
-│   ├── Users.js            # User data schema
-│   ├── Tasks.js            # Task data schema
-|   ├── ListAssignments.js  # List assignments schema
-|   ├── Lists.js            # List schema
-|   ├── Recommendations.js  # not implemented yet
-|   └── Assignments.js      # Task data schema
-└── app.js            # app configuration
-```
+## Stack
 
-## 🛠️ Installation & Setup
+- Node.js
+- Express 4
+- EJS
+- MongoDB / Mongoose
+- Passport + <code>passport-local-mongoose</code>
+- <code>express-session</code>
+- Axios
+- Together AI API
+- HTML/CSS
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- dotenv
-- axios
+## Repository layout
 
-### Getting Started
+~~~text
+tuesday.com/
+├── backend/
+│   ├── app.js
+│   ├── models/
+│   │   ├── Users.js
+│   │   ├── Lists.js
+│   │   ├── Tasks.js
+│   │   ├── Assignments.js
+│   │   └── ListAssignments.js
+│   ├── views/
+│   │   ├── login.ejs
+│   │   ├── register.ejs
+│   │   ├── main.ejs
+│   │   └── tasks.ejs
+│   └── package.json
+├── package.json
+└── README.md
+~~~
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/MisbahAN/tuesday.com.git
-   cd tuesday.exe
-   ```
+## Run locally
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   npm install dotenv
-   ```
+~~~bash
+git clone https://github.com/muhzain05/tuesday.com.git
+cd tuesday.com/backend
+npm install
+~~~
 
-3. **Start development server**
-   ```bash
-   node app.js
-   ```
+The backend reads these environment variables:
 
-## 🔮 Future Enhancements
+~~~text
+PASSWORD_MONGO
+TOGETHER_AI_API_KEY
+~~~
 
-### Near-term Goals
-- [ ] AI-Powered Insights
-- [ ] Real-Time Collaboration
-- [ ] Gamification Features
+Then start the server:
 
-### Long-term Vision
-- [ ] Third-Party Integrations
-- [ ] Mobile Apps
-- [ ] Voice Commands
-- [ ] Advanced Analytics
+~~~bash
+node app.js
+~~~
 
-## 🤝 Contributing
+The current source listens on:
 
-We welcome contributions! Here's how you can help:
+~~~text
+http://localhost:3000
+~~~
 
-1. Fork the repository
-2. Create your feature branch
-   ```bash
-   git checkout -b feature/AmazingFeature
-   ```
-3. Commit your changes
-   ```bash
-   git commit -m 'Add some AmazingFeature'
-   ```
-4. Push to the branch
-   ```bash
-   git push origin feature/AmazingFeature
-   ```
-5. Open a Pull Request
+## Current limitations
 
+- the current session secret is hard-coded in the application source and should be moved to environment configuration before deployment
+- the MongoDB connection string has a fixed Atlas username/host with only the password supplied through the environment
+- the AI feature depends on Together AI; it is not an OpenAI integration
+- "real-time collaboration", predictive scheduling, and several ideas from the original hackathon README are not implemented in the audited source
+- the root React package and the server-rendered EJS app are separate pieces; the EJS application is the runnable task-management implementation documented here
 
-### Built with ❤️ during HackED 2025
+## HackED 2025
 
-[Report Bug](https://github.com/MisbahAN/tuesday.com/issues) · [Request Feature](https://github.com/MisbahAN/tuesday.com/issues)
-
-</div>
+This repository is a hackathon project. The README is intentionally scoped to the features present in the checked-in implementation rather than the broader product ideas explored during the event.
